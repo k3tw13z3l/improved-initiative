@@ -1,4 +1,4 @@
-node {
+pipeline {
   environment {
     registry = "harbor01.infra.drie.it/pascal"
     registryCredential = 'drieit'
