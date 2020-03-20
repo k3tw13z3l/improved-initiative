@@ -8,10 +8,12 @@ pipeline {
     stage('Build Image') {
       steps {
         checkout scm
-        def dockerImage = docker.build registry + "/jimpinit:$BUILD_NUMBER"
-        docker.withRegistry ('', registryCredentials ) {
-           dockerImage.push()
-           dockerImage.push('latest')
+        script {
+          def dockerImage = docker.build registry + "/jimpinit:$BUILD_NUMBER"
+          docker.withRegistry ('', registryCredentials ) {
+            dockerImage.push()
+            dockerImage.push('latest')
+          }
         }
       }
     }
