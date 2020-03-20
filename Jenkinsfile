@@ -5,14 +5,19 @@ pipeline {
     registryCredential = 'drieit'
   }
   stages {
-    stage('Build') {
+    stage('Build Image') {
       steps {
         checkout scm
-        def PkImage = docker.build registry + ("/jimpinit:${env.BUILD_ID}")
+        def dockerImage = docker.build registry + "/jimpinit:$BUILD_NUMBER"
         docker.withRegistry ('', registryCredentials ) {
-           PkImage.push()
-           PkImage.push('latest')
+           dockerImage.push()
+           dockerImage.push('latest')
         }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
       }
     }
   }
