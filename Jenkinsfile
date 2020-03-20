@@ -1,36 +1,48 @@
-node {
-    def app
-
-    stage('Clone repository') {
-        /* Let's make sure we have the repository cloned to our workspace */
-
-        checkout scm
-    }
-
-    stage('Build image') {
-        /* This builds the actual image; synonymous to
-         * docker build on the command line */
-
-        app = docker.build("")
-    }
-
-    stage('Test image') {
-        /* Ideally, we would run a test framework against our image.
-         * For this example, we're using a Volkswagen-type approach ;-) */
-
-        app.inside {
-            sh 'echo "Tests passed"'
-        }
-    }
-
-    stage('Push image') {
-        /* Finally, we'll push the image with two tags:
-         * First, the incremental build number from Jenkins
-         * Second, the 'latest' tag.
-         * Pushing multiple tags is cheap, as all the layers are reused. */
-        docker.withRegistry('https://harbor01.infra.drie.it', '') {
-            app.push("${env.BUILD_NUMBER}")
-            app.push("latest")
-        }
-    }
+pipeline {
+   agent any
+   environment {
+       registry = "harbor01.infra.drie.it"
+   }
+   stages {
+       stage('Build') {
+           agent {
+               docker {
+                   image 'node:carbon'
+               }
+           }
+           steps {
+               // Create our project directory.
+               sh 'cd /tmp/src'
+               sh 'mkdir -p /tmp/src/impinit'
+               // Copy all files in our Jenkins workspace to our project directory.
+               sh 'cp -r ${WORKSPACE}/* /tmp/src/impinit'
+               // Build the app.
+               sh 'go build'
+           }
+       }
+       stage('Test') {
+       }
+       stage('Publish') {
+           environment {
+               registryCredential = 'drieit'
+           }
+           steps{
+               script {
+                   def appimage = docker.build registry + ":$BUILD_NUMBER"
+                   docker.withRegistry( '', registryCredential ) {
+                       appimage.push()
+                       appimage.push('latest')
+                   }
+               }
+           }
+       }
+       stage ('Deploy') {
+           steps {
+               script{
+                   def image_id = registry + ":$BUILD_NUMBER"
+                   sh "ansible-playbook  playbook.yml --extra-vars \"image_id=${image_id}\""
+               }
+           }
+       }
+   }
 }
