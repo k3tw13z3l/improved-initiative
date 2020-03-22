@@ -13,6 +13,7 @@ pipeline {
     stage('Docker Push') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'drieit', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+          sh "echo ${env.dockerHubUser}"
           sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword} harbor01.infra.drie.it"
           sh "docker push harbor01.infra.drie.it/improved_init/jimpinit:${env.BUILD_NUMBER}"
         }
