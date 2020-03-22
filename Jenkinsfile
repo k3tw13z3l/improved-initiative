@@ -1,5 +1,5 @@
 pipeline {
-  agent { any }
+  agent any
   environment {
     registry = "harbor01.infra.drie.it/improved_init" 
     registryCredential = 'drieit'
