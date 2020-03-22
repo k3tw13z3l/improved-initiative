@@ -1,14 +1,12 @@
 pipeline {
-  agent { dockerfile true }
+  agent { any }
   environment {
     registry = "harbor01.infra.drie.it/improved_init" 
     registryCredential = 'drieit'
   }
   stages {
     stage('Build Image') {
-      steps {
-        checkout scm
-        
+      steps {        
         sh 'docker build -t $registry + "/jimpinit:${env.BUILD_NUMBER} ."'
       }
     }
