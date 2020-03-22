@@ -8,9 +8,8 @@ pipeline {
     stage('Build Image') {
       steps {
         checkout scm
-        script {
-          def dockerImage = docker.build $registry + "/jimpinit:${env.BUILD_NUMBER}"
-        }
+        
+        sh 'docker build -t $registry + "/jimpinit:${env.BUILD_NUMBER} ."'
       }
     }
     stage('Docker Push') {
